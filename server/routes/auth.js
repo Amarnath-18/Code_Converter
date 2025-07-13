@@ -57,9 +57,16 @@ router.post('/register', [
     // Generate token
     const token = generateToken(user._id);
 
+    // Set HTTP-only cookie
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     res.status(201).json({
       message: 'User registered successfully',
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -111,9 +118,16 @@ router.post('/login', [
     // Generate token
     const token = generateToken(user._id);
 
+    // Set HTTP-only cookie
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     res.json({
       message: 'Login successful',
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -142,6 +156,14 @@ router.get('/profile', auth, async (req, res) => {
     console.error('Profile error:', error);
     res.status(500).json({ message: 'Server error fetching profile' });
   }
+});
+
+// @route   POST /api/auth/logout
+// @desc    Logout user and clear cookie
+// @access  Private
+router.post('/logout', (req, res) => {
+  res.clearCookie('auth_token');
+  res.json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;

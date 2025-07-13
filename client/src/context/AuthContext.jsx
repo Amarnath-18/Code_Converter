@@ -19,12 +19,10 @@ export const AuthProvider = ({ children }) => {
   // Configure axios defaults
   const API_URL = 'http://localhost:5000/api';
   
-  // Set up axios interceptor for auth token
+  // Set up axios interceptor for cookies
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
+    // Enable sending cookies with requests
+    axios.defaults.withCredentials = true;
   }, []);
 
   // Check if user is logged in on app load
@@ -34,15 +32,11 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        const response = await axios.get(`${API_URL}/auth/profile`);
-        setUser(response.data.user);
-      }
+      const response = await axios.get(`${API_URL}/auth/profile`);
+      setUser(response.data.user);
     } catch (error) {
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      // User is not authenticated or token is invalid
+      console.log('Not authenticated');
     } finally {
       setLoading(false);
     }
@@ -54,10 +48,7 @@ export const AuthProvider = ({ children }) => {
       setError('');
       const response = await axios.post(`${API_URL}/auth/register`, userData);
       
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(user);
+      setUser(response.data.user);
       
       return { success: true, message: response.data.message };
     } catch (error) {
@@ -75,10 +66,7 @@ export const AuthProvider = ({ children }) => {
       setError('');
       const response = await axios.post(`${API_URL}/auth/login`, credentials);
       
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(user);
+      setUser(response.data.user);
       
       return { success: true, message: response.data.message };
     } catch (error) {
@@ -90,9 +78,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
+  const logout = async () => {
+    try {
+      await axios.post(`${API_URL}/auth/logout`);
+    } catch (error) {
+      console.log('Logout error:', error);
+    }
     setUser(null);
     setError('');
   };
