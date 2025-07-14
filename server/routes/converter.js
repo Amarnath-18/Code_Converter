@@ -47,7 +47,6 @@ Convert to ${targetLang}:`;
     res.writeHead(200, {
       'Content-Type': 'text/plain',
       'Transfer-Encoding': 'chunked',
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',

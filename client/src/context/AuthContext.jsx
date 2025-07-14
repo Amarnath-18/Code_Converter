@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data.user);
     } catch (error) {
       // User is not authenticated or token is invalid
-      console.log('Not authenticated');
+      console.log('Not authenticated' , error);
     } finally {
       setLoading(false);
     }
